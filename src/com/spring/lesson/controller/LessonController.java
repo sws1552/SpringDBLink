@@ -128,7 +128,7 @@ public class LessonController {
 		return mav;
 	}
 	
-	//페이징 페이징 페이징 페이징
+	//페이징 페이징 페이징
 	@RequestMapping("/listLessonPaging.sws")
 	// 데이터의 이동은 항상 @ModelAttribute LessonVO param 깡통 클래스를 사용한다.
 	// form태그 안에 있는 name값과 vo의 변수명이 같아야 @ModelAttribute가 set을 해준다.
