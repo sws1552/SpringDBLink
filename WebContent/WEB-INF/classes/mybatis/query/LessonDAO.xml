@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.lesson.dao.LessonMapper">
+	<!-- result property 명과 vo클래스의 변수명과 같게 해준다. -->
+	<resultMap type="com.spring.lesson.vo.LessonVO" id="lessonVO">
+		<result property="num" column="NUM" />
+		<result property="lnum" column="LNUM" />
+		<result property="lname" column="LNAME" />
+		<result property="deleteyn" column="DELETEYN" />
+		<result property="insertdate" column="INSERTDATE" />
+		<result property="updatedate" column="UPDATEDATE" />
+		<result property="pagesize" column="PAGESIZE" />
+		<result property="groupsize" column="GROUPSIZE" />
+		<!-- <result property="curpage" column="CURPAGE" /> -->
+		<result property="totalcount" column="TOTALCOUNT" />
+	</resultMap>
+
+	
+
+	<!-- #{}을 사용하여 바인딩을 한다. 
+	controller에서 modelattribute를 사용해 자동으로 
+	데이터들을 깡통에 set을 해주거나 set함수를 사용하여 set을해주면
+	쿼리xml에서 바인딩을 해줘야한다
+	안에있는 값은 result property 값이다.
+	쿼리문 아이디값과 mapperimpl의 함수명과 같아야한다. -->
+	<select id="listLessonPaging" resultMap="lessonVO">
+		SELECT * FROM(
+		SELECT
+		L.NUM AS NUM,
+		L.LNUM AS LNUM,
+		L.LNAME AS LNAME,
+		L.DELETEYN AS DELETEYN,
+		TO_CHAR(L.INSERTDATE, 'YYYY-MM-DD') AS INSERTDATE,
+		TO_CHAR(L.UPDATEDATE, 'YYYY-MM-DD') AS UPDATEDATE,
+		CEIL(ROW_NUMBER() OVER(ORDER BY L.NUM DESC) / #{pagesize}) PAGENO,
+		COUNT(L.NUM) OVER() AS TOTALCOUNT,
+		#{curpage} AS CURPAGE,
+		#{groupsize} AS GROUPSIZE,
+		#{pagesize} AS PAGESIZE
+		<where>
+		<if test="updatedate != null and updatedate != ''">
+          AND TO_CHAR(TO_DATE(UPDATEDATE), 'YYYYMMDD') = TO_CHAR(TO_DATE(#{updatedate}), 'YYYYMMDD')
+            AND DELETEYN = 'Y'
+         </if>
+         <if test="updatedate == null and updatedate == ''">
+           AND DELETEYN = 'Y'
+         </if>
+		</where>
+		FROM LESSON L
+		WHERE L.DELETEYN = 'Y'
+		ORDER BY 1 DESC
+		) 
+		<where>
+		PAGENO = #{curpage}       
+		</where>
+	</select>
+
+
+	<select id="listLesson" resultMap="lessonVO">
+
+		SELECT NUM,LNUM,LNAME,DELETEYN,
+		TO_CHAR(INSERTDATE, 'YYYY-MM-DD') AS INSERTDATE,
+		TO_CHAR(UPDATEDATE, 'YYYY-MM-DD') AS UPDATEDATE
+		FROM LESSON 
+		
+		<where>
+		DELETEYN = 'Y'
+         <if test="updatedate != null and updatedate != ''">
+           AND TO_CHAR(TO_DATE(UPDATEDATE), 'YYYYMMDD') = TO_CHAR(TO_DATE(#{updatedate}), 'YYYYMMDD')
+            AND DELETEYN = 'Y'
+         </if>
+         <if test="updatedate == null and updatedate == ''">
+           AND DELETEYN = 'Y'
+         </if>
+		</where>
+		ORDER BY NUM DESC
+	</select>
+
+
+	<resultMap type="com.spring.lesson.vo.LessonVO"
+		id="lessonSelectVO">
+		<result property="num" column="NUM" />
+	</resultMap>
+
+	<select id="selectLesson" resultMap="lessonSelectVO">
+		SELECT NUM, LNUM, LNAME,
+		DELETEYN, INSERTDATE, UPDATEDATE
+		FROM LESSON
+		WHERE NUM = #{num}
+	</select>
+
+
+
+	<resultMap type="com.spring.lesson.vo.LessonVO"
+		id="lessonInsertVO">
+		<result property="num" column="NUM" />
+		<result property="lnum" column="LNUM" />
+		<result property="lname" column="LNAME" />
+		<result property="deleteyn" column="DELETEYN" />
+		<result property="insertdate" column="INSERTDATE" />
+		<result property="updatedate" column="UPDATEDATE" />
+	</resultMap>
+
+	<insert id="insertLesson" parameterType="com.spring.lesson.vo.LessonVO">
+		<selectKey keyProperty="num" resultType="String" order="BEFORE">
+			SELECT /*+INDEX_DESC(S LESSONPK)*/
+    'L' || LPAD(NVL(MAX(SUBSTR(S.NUM,-4)),0) + 1 ,4,'0') AS COMMNO
+			FROM LESSON S
+		</selectKey>
+		INSERT INTO LESSON
+		(NUM,LNUM,LNAME,DELETEYN,INSERTDATE,UPDATEDATE)
+		VALUES
+		(#{num},#{lnum},#{lname},'Y',SYSDATE,SYSDATE)
+	</insert>
+
+
+	<resultMap type="com.spring.lesson.vo.LessonVO"
+		id="lessonUpdateVO">
+		<result property="num" column="NUM" />
+		<result property="lnum" column="LNUM" />
+		<result property="lname" column="LNAME" />
+	</resultMap>
+
+	<update id="updateLesson">
+		UPDATE LESSON
+		SET
+		LNUM = #{lnum},
+		LNAME = #{lname},
+		UPDATEDATE = SYSDATE
+		WHERE DELETEYN = 'Y'
+		AND NUM = #{num}
+	</update>
+
+
+	<resultMap type="com.spring.lesson.vo.LessonVO"
+		id="lessonDeleteVO">
+		<result property="num" column="NUM" />
+	</resultMap>
+
+	<!-- 삭제 -->
+	<update id="deleteLesson">
+		UPDATE LESSON
+		SET
+		DELETEYN = 'N',
+		UPDATEDATE = SYSDATE
+		WHERE NUM = #{num}		
+	</update>
+
+
+
+
+
+</mapper>

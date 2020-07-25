@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:context="http://www.springframework.org/schema/context" 
+		xmlns:tx="http://www.springframework.org/schema/tx" 
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/tx 
+							http://www.springframework.org/schema/tx/spring-tx.xsd
+							http://www.springframework.org/schema/context 
+							http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- DB Connection -->
+	
+	<!-- DataSource -->
+	<!-- 
+		TOMCAT/conf/context.xml 
+		<Resource 엘리먼트에 있는 name="jdbc/Oracle11g" 으로 DataSource 불러오기
+		 
+		JNDI(Java Namming Directory Service) namespace
+		java:comp/env/ : jndi에서 lookup할 때 사용하는 빈의 가상 디렉토리 공간으로 
+		                                  빈이 있는 기본 사가상 디렉토리 
+		                 resource를 찾을때 리소스 이름을 lookup 하는 접두사 
+		java/Oracle11g : datasource 이름 
+	-->
+	
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="java:comp/env/jdbc/Oracle11g" />
+	</bean>
+
+	<!-- Mybatis Setting -->
+	<!-- 
+		Mybatis 쿼리문을 찾기 
+		classpath 는 context/WEB-INF/classes 경로를 의미함 
+		Mybatis 설정파일은 context/WEB-INF/classes 에 두라는 의미 
+		classpath:mybatis : context/WEB-INF/classes/mybatis(폴더로 만든다.)  
+		query/*.xml : query 디렉토리에 있는 모들 sql 쿼리 xml 문서 	
+		<property name="dataSource" ref="dataSource" /> 는 위에 
+		빈태그안에 있는 id=dataSource를 가리키며 꼭 저것을 사용해야한다.
+		(transactionManager 도 같이)	   
+    -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<property name="dataSource" ref="dataSource" />
+    	<property name="mapperLocations" value="classpath:mybatis/query/*.xml" />    	
+    </bean>
+
+	<!-- a PlatfromTransactionManager is still required -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- mapper 찾아오기 -->
+   <!-- 
+   		DAO (MAPPER) 스캔해서 찾아오기 
+    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    	<property name="basePackage"><value>com.spring.**.dao</value></property>
+    </bean>
+
+
+
+
+</beans>
