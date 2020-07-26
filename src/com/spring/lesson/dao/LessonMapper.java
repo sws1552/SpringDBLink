@@ -5,6 +5,7 @@ import java.util.List;
 import com.spring.lesson.vo.LessonVO;
 
 public interface LessonMapper {
+	// ¡÷ºÆ
 	public List<LessonVO> listLesson(LessonVO param);
 	public LessonVO selectLesson(LessonVO param);
 	public int insertLesson(LessonVO param);
